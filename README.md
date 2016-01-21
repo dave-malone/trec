@@ -1,3 +1,6 @@
+[![wercker status](https://app.wercker.com/status/1caa098ae0d53cda8de56daacd96d3ad/m "wercker status")](https://app.wercker.com/project/bykey/1caa098ae0d53cda8de56daacd96d3ad)
+
+
 ## Run locally with in-memory repositories
 
 `go run main.go` 
