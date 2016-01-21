@@ -10,7 +10,7 @@ import (
 
 type fakeUserRepository struct {
 	execResult     User
-	execResults    []*User
+	execResults    []User
 	execError      error
 	SpyGetUserById string
 }
@@ -42,7 +42,7 @@ func (t *fakeUserRepository) GetUserReturns(user User, err error) {
 	t.execError = err
 }
 
-func (t *fakeUserRepository) GetUsersReturns(users []*User, err error) {
+func (t *fakeUserRepository) GetUsersReturns(users []User, err error) {
 	t.execResults = users
 	t.execError = err
 }
@@ -51,7 +51,7 @@ func (t *fakeUserRepository) addUser(user User) (err error) {
 	return t.execError
 }
 
-func (t *fakeUserRepository) getUsers() (users []*User) {
+func (t *fakeUserRepository) getUsers() (users []User) {
 	return t.execResults
 }
 
@@ -66,7 +66,7 @@ func TestCreateUserHandler(t *testing.T) {
 	repo := new(fakeUserRepository)
 	repo.AddUserReturns(nil)
 
-	createUserHandler(user, repo, r)
+	createUserHandler(*user, repo, r)
 
 	if r.SpyStatus != http.StatusOK {
 		t.Fatalf("Excected status %v but status was: %v", http.StatusOK, r.SpyStatus)
@@ -117,7 +117,7 @@ func TestGetUserHandler(t *testing.T) {
 
 func TestGetUsersHandler(t *testing.T) {
 	r := new(fakeRender)
-	users := []*User{newUser(1, "First", "Last", "Email")}
+	users := []User{*newUser(1, "First", "Last", "Email")}
 	repo := new(fakeUserRepository)
 	repo.GetUsersReturns(users, nil)
 

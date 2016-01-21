@@ -7,15 +7,15 @@ import (
 	"github.com/xchapter7x/lo"
 )
 
-type sqlUserRepository struct {
+type mysqlUserRepository struct {
 	dbConn *DbConn
 }
 
-func newSqlUserRepository(dbConn *DbConn) *sqlUserRepository {
-	return &sqlUserRepository{dbConn}
+func newMysqlUserRepository(dbConn *DbConn) *mysqlUserRepository {
+	return &mysqlUserRepository{dbConn}
 }
 
-func (repo *sqlUserRepository) addUser(user User) (err error) {
+func (repo *mysqlUserRepository) addUser(user User) (err error) {
 	result, err := repo.dbConn.Exec("INSERT INTO USER (first_name, last_name, email) values (?, ?, ?)", user.FirstName, user.LastName, user.Email)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Failed to insert user; %v", err))
@@ -28,7 +28,7 @@ func (repo *sqlUserRepository) addUser(user User) (err error) {
 
 	return nil
 }
-func (repo *sqlUserRepository) getUsers() (users []*User) {
+func (repo *mysqlUserRepository) getUsers() (users []*User) {
 	users = make([]*User, 0)
 
 	rows, err := repo.dbConn.Query("SELECT id, first_name, last_name, email FROM USER")
@@ -59,7 +59,7 @@ func (repo *sqlUserRepository) getUsers() (users []*User) {
 
 	return users
 }
-func (repo *sqlUserRepository) getUser(userId string) (user User, err error) {
+func (repo *mysqlUserRepository) getUser(userId string) (user User, err error) {
 	var (
 		id                         int64  = *new(int64)
 		firstName, lastName, email string = *new(string), *new(string), *new(string)

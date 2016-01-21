@@ -1,52 +1,39 @@
 package trec
 
 import (
-	"flag"
-	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/codegangsta/martini-contrib/binding"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
+	"github.com/xchapter7x/lo"
 )
 
 // NewServer configures and returns a Server.
 func NewServer() *martini.ClassicMartini {
-	db := initDb()
-	userRepo := newSqlUserRepository(db)
-
 	m := martini.Classic()
-	m.Map(userRepo)
-	m.Use(render.Renderer())
-
 	initRoutes(m)
+	initMappings(m)
+	m.Use(render.Renderer())
 
 	return m
 }
 
-func initDb() (db *DbConn) {
-	dbUrl := flag.String("dburl", "trec:trec@localhost:3306/trec", "specify the MySQL database url to connect against")
+func initMappings(m *martini.ClassicMartini) {
+	profile := os.Getenv("PROFILE")
 
-	flag.Parse()
+	if profile == "mysql" {
+		db, err := newDbConn()
+		if err != nil {
+			userRepo := newMysqlUserRepository(db)
+			m.Map(userRepo)
+		}
+	} else {
+		lo.G.Info("Using in-memory repositories")
 
-	var (
-		data []byte
-		err  error
-	)
-
-	if data, err = ioutil.ReadFile("create_db.sql"); err != nil {
-		panic(fmt.Sprintf("Failed to read file: %v", err))
+		userRepo := newInMemoryUserRepository()
+		m.Map(userRepo)
 	}
-
-	if db, err = newDbConn(*dbUrl); err != nil {
-		panic(fmt.Sprintf("Failed to connect to db: %v", err))
-	}
-
-	if _, err = db.Exec(string(data)); err != nil {
-		panic(fmt.Sprintf("Failed to create db tables: %v", err))
-	}
-
-	return db
 }
 
 func initRoutes(m *martini.ClassicMartini) {

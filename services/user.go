@@ -11,7 +11,7 @@ import (
 
 type userRepository interface {
 	addUser(user User) (err error)
-	getUsers() (users []*User)
+	getUsers() (users []User)
 	getUser(id string) (user User, err error)
 }
 
@@ -37,8 +37,8 @@ var (
 	ErrUserDoesntExist = errors.New("This user doesnt exist")
 )
 
-func createUserHandler(user *User, repo userRepository, r render.Render) {
-	err := repo.addUser(*user)
+func createUserHandler(user User, repo userRepository, r render.Render) {
+	err := repo.addUser(user)
 	responseCode := http.StatusOK
 	errMsg := ""
 
