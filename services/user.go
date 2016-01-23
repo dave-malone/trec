@@ -20,7 +20,25 @@ type User struct {
 	Email     string `json:"email"`
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
-	Password  string `json:"password"`
+	Password  string `json:"-"`
+}
+
+func (user *User) validate() (errs []string) {
+	errs = []string{}
+
+	if len(user.FirstName) == 0 {
+		errs = append(errs, "First Name is required")
+	}
+
+	if len(user.LastName) == 0 {
+		errs = append(errs, "Last Name is required")
+	}
+
+	if len(user.Email) == 0 {
+		errs = append(errs, "Email is required")
+	}
+
+	return errs
 }
 
 func newUser(Id int64, FirstName string, LastName string, Email string) *User {
@@ -38,6 +56,16 @@ var (
 )
 
 func createUserHandler(user User, repo userRepository, r render.Render) {
+	errs := user.validate()
+
+	if len(errs) != 0 {
+		r.JSON(http.StatusBadRequest, map[string]interface{}{
+			"errors": errs,
+		})
+
+		return
+	}
+
 	err := repo.addUser(user)
 	responseCode := http.StatusOK
 	errMsg := ""

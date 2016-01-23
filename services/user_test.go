@@ -60,6 +60,16 @@ func (t *fakeUserRepository) getUser(id string) (user User, err error) {
 	return t.execResult, t.execError
 }
 
+func TestValidateWithEmptyRequiredFieldsFailsWithErrors(t *testing.T) {
+	user := newUser(-1, "", "", "")
+
+	errors := user.validate()
+
+	if len(errors) != 3 {
+		t.Fatalf("Expected three errors, but there were %v errors: %v", len(errors), errors)
+	}
+}
+
 func TestCreateUserHandler(t *testing.T) {
 	r := new(fakeRender)
 	user := newUser(-1, "First", "Last", "Email")
