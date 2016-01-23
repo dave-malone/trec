@@ -1,0 +1,5 @@
+---
+name: trec 
+buildpack: http://github.com/ryandotsmith/null-buildpack.git
+command: ./trec
+
