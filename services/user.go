@@ -55,7 +55,7 @@ var (
 	ErrUserDoesntExist = errors.New("This user doesnt exist")
 )
 
-func createUserHandler(user User, repo userRepository, r render.Render) {
+func createUserHandler(user User, repo userRepository, sender emailSender, r render.Render) {
 	errs := user.validate()
 
 	if len(errs) != 0 {
@@ -74,6 +74,14 @@ func createUserHandler(user User, repo userRepository, r render.Render) {
 		lo.G.Fatal(err)
 		errMsg = err.Error()
 		responseCode = http.StatusInternalServerError
+	} else {
+		email := newEmailMessage("no-reply@therealestatecrm.com",
+			user.Email,
+			"Thanks for Registering for an account on TheRealEstateCRM.com",
+			"${Verification Message Placeholder}",
+			"${Verification HTML message placeholder}",
+		)
+		sender.send(*email)
 	}
 
 	r.JSON(responseCode, map[string]interface{}{

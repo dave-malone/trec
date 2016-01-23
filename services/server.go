@@ -22,6 +22,8 @@ func NewServer() *martini.ClassicMartini {
 func initMappings(m *martini.ClassicMartini) {
 	profile := os.Getenv("PROFILE")
 
+	m.Map(newNoopEmailSender())
+
 	if profile == "mysql" {
 		db, err := newDbConn()
 		if err != nil {

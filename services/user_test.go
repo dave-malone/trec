@@ -76,7 +76,9 @@ func TestCreateUserHandler(t *testing.T) {
 	repo := new(fakeUserRepository)
 	repo.AddUserReturns(nil)
 
-	createUserHandler(*user, repo, r)
+	emailSender := newNoopEmailSender()
+
+	createUserHandler(*user, repo, emailSender, r)
 
 	if r.SpyStatus != http.StatusOK {
 		t.Fatalf("Excected status %v but status was: %v", http.StatusOK, r.SpyStatus)

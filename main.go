@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/dave-malone/trec/services"
+	"github.com/xchapter7x/lo"
 )
 
 func main() {
@@ -13,7 +13,7 @@ func main() {
 		port = "3000"
 	}
 
-	fmt.Printf("Running server on port %v\n", port)
+	lo.G.Debug("Running server on port %v\n", port)
 
 	m := trec.NewServer()
 	m.RunOnAddr(":" + port)
