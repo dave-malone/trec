@@ -16,11 +16,13 @@ type userRepository interface {
 }
 
 type User struct {
-	Id        int64  `json:"id"`
-	Email     string `json:"email"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Password  string `json:"-"`
+	Id        int64   `json:"id"`
+	Email     string  `json:"email"`
+	FirstName string  `json:"first_name"`
+	LastName  string  `json:"last_name"`
+	Password  string  `json:"-"`
+	Company   Company `json:"company"`
+	Verified  bool    `json:"verified"`
 }
 
 func (user *User) validate() (errs []string) {
@@ -71,7 +73,7 @@ func createUserHandler(user User, repo userRepository, sender emailSender, r ren
 	errMsg := ""
 
 	if err != nil {
-		lo.G.Fatal(err)
+		lo.G.Errorf("An error occurred when saving user: %v", err)
 		errMsg = err.Error()
 		responseCode = http.StatusInternalServerError
 	} else {
@@ -114,7 +116,7 @@ func getUserHandler(repo userRepository, params martini.Params, r render.Render)
 	errMsg := ""
 
 	if err != nil {
-		lo.G.Fatal(err)
+		lo.G.Errorf("An error occurred when getting user: %v", err)
 		errMsg = err.Error()
 		responseCode = http.StatusInternalServerError
 	}
