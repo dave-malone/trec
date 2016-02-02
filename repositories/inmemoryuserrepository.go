@@ -33,6 +33,7 @@ func (repo *inMemoryUserRepository) getUser(id string) (user User, err error) {
 	}
 	if !found {
 		err = errors.New("Could not find user in repository")
+		user = nil
 	}
 	return user, err
 }
