@@ -1,12 +1,16 @@
 [![wercker status](https://app.wercker.com/status/1caa098ae0d53cda8de56daacd96d3ad/m "wercker status")](https://app.wercker.com/project/bykey/1caa098ae0d53cda8de56daacd96d3ad)
 
 
+## API Docs
+
+https://app.getpostman.com/dashboard/documentation/view?collection_id=bcfed53e-c8a2-bc46-4146-63e03c357840&owner=314441
+
 ## Run locally with in-memory repositories
 
 `go run main.go`
 
 Optionally, use fresh instead to auto-reload changes:
-[https://github.com/pilu/fresh] 
+https://github.com/pilu/fresh
 
 ## Create a Test User
 `curl -H "Content-Type: application/json" -X POST -d '{"first_name":"John","last_name":"Doe", "email":"johndoe@test.com", "password":"p@$$w3Rd"}' http://localhost:3000/user`
