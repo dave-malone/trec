@@ -63,10 +63,10 @@ func (t *fakeUserRepository) getUser(id string) (user User, err error) {
 func TestValidateWithEmptyRequiredFieldsFailsWithErrors(t *testing.T) {
 	user := newUser(-1, "", "", "")
 
-	errors := user.validate()
+	validationErrors := user.validate()
 
-	if len(errors) != 3 {
-		t.Fatalf("Expected three errors, but there were %v errors: %v", len(errors), errors)
+	if len(validationErrors.Errors) != 3 {
+		t.Fatalf("Expected three errors, but there were %v errors: %v", len(validationErrors.Errors), validationErrors.Errors)
 	}
 }
 

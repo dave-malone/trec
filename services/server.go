@@ -52,4 +52,9 @@ func initRoutes(m *martini.ClassicMartini) {
 		r.Post("/", binding.Json(User{}), createUserHandler)
 	})
 
+	m.Group("/company", func(r martini.Router) {
+		r.Get("/info", func() string {
+			return "An API that allows you to work with Companies"
+		})
+	})
 }

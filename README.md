@@ -3,7 +3,10 @@
 
 ## Run locally with in-memory repositories
 
-`go run main.go` 
+`go run main.go`
+
+Optionally, use fresh instead to auto-reload changes:
+[https://github.com/pilu/fresh] 
 
 ## Create a Test User
 `curl -H "Content-Type: application/json" -X POST -d '{"first_name":"John","last_name":"Doe", "email":"johndoe@test.com", "password":"p@$$w3Rd"}' http://localhost:3000/user`

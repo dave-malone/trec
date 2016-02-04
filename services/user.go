@@ -25,19 +25,19 @@ type User struct {
 	Verified  bool    `json:"verified"`
 }
 
-func (user *User) validate() (errs []string) {
-	errs = []string{}
+func (user *User) validate() (errs ValidationErrors) {
+	errs = newValidationErrors()
 
 	if len(user.FirstName) == 0 {
-		errs = append(errs, "First Name is required")
+		errs.add("first_name", "First Name is required")
 	}
 
 	if len(user.LastName) == 0 {
-		errs = append(errs, "Last Name is required")
+		errs.add("last_name", "Last Name is required")
 	}
 
 	if len(user.Email) == 0 {
-		errs = append(errs, "Email is required")
+		errs.add("email", "Email is required")
 	}
 
 	return errs
@@ -60,9 +60,9 @@ var (
 func createUserHandler(user User, repo userRepository, sender emailSender, r render.Render) {
 	errs := user.validate()
 
-	if len(errs) != 0 {
+	if errs.isEmpty() != true {
 		r.JSON(http.StatusBadRequest, map[string]interface{}{
-			"errors": errs,
+			"errors": errs.Errors,
 		})
 
 		return
@@ -77,6 +77,7 @@ func createUserHandler(user User, repo userRepository, sender emailSender, r ren
 		errMsg = err.Error()
 		responseCode = http.StatusInternalServerError
 	} else {
+		//TODO - send event on chan, refactor messages into their own types
 		email := newEmailMessage("no-reply@therealestatecrm.com",
 			user.Email,
 			"Thanks for Registering for an account on TheRealEstateCRM.com",
