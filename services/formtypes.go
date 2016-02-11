@@ -5,7 +5,7 @@ type fieldType struct {
 }
 
 type fieldValidator interface {
-	validate() (valid bool, errs []error)
+	isValid() (valid bool, errs []error)
 }
 
 type field struct {
@@ -35,7 +35,7 @@ func (f *form) validate() (valid bool, errs []error) {
 	valid = true
 
 	for _, field := range f.fields {
-		fieldIsValid, fieldValErrs := field.validator.validate()
+		fieldIsValid, fieldValErrs := field.validator.isValid()
 		if fieldIsValid != true || len(fieldValErrs) > 0 {
 			valid = false
 			errs = append(errs, fieldValErrs...)

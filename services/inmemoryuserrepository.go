@@ -9,20 +9,20 @@ type inMemoryUserRepository struct {
 	users []User
 }
 
-func newInMemoryUserRepository() *inMemoryUserRepository {
-	repo := &inMemoryUserRepository{}
+func newInMemoryUserRepository() userRepository {
+	repo := inMemoryUserRepository{}
 	repo.users = []User{}
 	return repo
 }
 
-func (repo *inMemoryUserRepository) addUser(user User) (err error) {
+func (repo inMemoryUserRepository) addUser(user User) (err error) {
 	repo.users = append(repo.users, user)
 	return err
 }
-func (repo *inMemoryUserRepository) getUsers() (users []User) {
+func (repo inMemoryUserRepository) getUsers() (users []User) {
 	return repo.users
 }
-func (repo *inMemoryUserRepository) getUser(id string) (user User, err error) {
+func (repo inMemoryUserRepository) getUser(id string) (user User, err error) {
 	found := false
 
 	for _, target := range repo.users {

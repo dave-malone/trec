@@ -71,14 +71,14 @@ func TestValidateWithEmptyRequiredFieldsFailsWithErrors(t *testing.T) {
 }
 
 func TestCreateUserHandler(t *testing.T) {
+	newEmailSender = newNoopEmailSender
+
 	r := new(fakeRender)
 	user := newUser(-1, "First", "Last", "Email")
 	repo := new(fakeUserRepository)
 	repo.AddUserReturns(nil)
 
-	emailSender := newNoopEmailSender()
-
-	createUserHandler(*user, repo, emailSender, r)
+	createUserHandler(*user, repo, r)
 
 	if r.SpyStatus != http.StatusOK {
 		t.Fatalf("Excected status %v but status was: %v", http.StatusOK, r.SpyStatus)

@@ -18,15 +18,17 @@ type amazonSesEmailSender struct {
 	endpoint, accessKeyID, secretAccessKey string
 }
 
-func newAmazonSesEmailSender(endpoint, accessKeyID, secretAccessKey string) (emailSender amazonSesEmailSender) {
-	return amazonSesEmailSender{
-		endpoint:        endpoint,
-		accessKeyID:     accessKeyID,
-		secretAccessKey: secretAccessKey,
+func newAmazonSesEmailSender(endpoint, accessKeyID, secretAccessKey string) emailSenderFactory {
+	return func() emailSender {
+		return amazonSesEmailSender{
+			endpoint:        endpoint,
+			accessKeyID:     accessKeyID,
+			secretAccessKey: secretAccessKey,
+		}
 	}
 }
 
-func (sender *amazonSesEmailSender) send(email emailMessage) error {
+func (sender amazonSesEmailSender) send(email emailMessage) error {
 	data := make(url.Values)
 	data.Add("Action", "SendEmail")
 	data.Add("Source", email.from)

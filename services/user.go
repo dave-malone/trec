@@ -2,6 +2,7 @@ package trec
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/go-martini/martini"
@@ -9,11 +10,21 @@ import (
 	"github.com/xchapter7x/lo"
 )
 
-type userRepository interface {
-	addUser(user User) (err error)
-	getUsers() (users []User)
-	getUser(id string) (user User, err error)
-}
+type (
+	userRepository interface {
+		addUser(user User) (err error)
+		getUsers() (users []User)
+		getUser(id string) (user User, err error)
+	}
+
+	userRepositoryFactory func() userRepository
+)
+
+var (
+	newUserRepository  userRepositoryFactory
+	ErrInvalidUserId   = errors.New("invalid user id")
+	ErrUserDoesntExist = errors.New("This user doesnt exist")
+)
 
 type User struct {
 	Id        int64   `json:"id"`
@@ -23,6 +34,10 @@ type User struct {
 	Password  string  `json:"-"`
 	Company   Company `json:"company"`
 	Verified  bool    `json:"verified"`
+}
+
+func (user *User) String() string {
+	return fmt.Sprintf("User{Id:%v, Verified:%v, Email:%v, Name:%v %v}", user.Id, user.Verified, user.Email, user.FirstName, user.LastName)
 }
 
 func (user *User) validate() (errs ValidationErrors) {
@@ -52,12 +67,7 @@ func newUser(Id int64, FirstName string, LastName string, Email string) *User {
 	}
 }
 
-var (
-	ErrInvalidUserId   = errors.New("invalid user id")
-	ErrUserDoesntExist = errors.New("This user doesnt exist")
-)
-
-func createUserHandler(user User, repo userRepository, sender emailSender, r render.Render) {
+func createUserHandler(user User, repo userRepository, r render.Render) {
 	errs := user.validate()
 
 	if errs.isEmpty() != true {
@@ -77,14 +87,7 @@ func createUserHandler(user User, repo userRepository, sender emailSender, r ren
 		errMsg = err.Error()
 		responseCode = http.StatusInternalServerError
 	} else {
-		//TODO - send event on chan, refactor messages into their own types
-		email := newEmailMessage("no-reply@therealestatecrm.com",
-			user.Email,
-			"Thanks for Registering for an account on TheRealEstateCRM.com",
-			"${Verification Message Placeholder}",
-			"${Verification HTML message placeholder}",
-		)
-		sender.send(*email)
+		newUserRegistrationEvent(user)
 	}
 
 	r.JSON(responseCode, map[string]interface{}{

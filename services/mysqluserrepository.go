@@ -11,11 +11,13 @@ type mysqlUserRepository struct {
 	dbConn *DbConn
 }
 
-func newMysqlUserRepository(dbConn *DbConn) *mysqlUserRepository {
-	return &mysqlUserRepository{dbConn}
+func newMysqlUserRepositoryFactory(dbConn *DbConn) userRepositoryFactory {
+	return func() userRepository {
+		return mysqlUserRepository{dbConn}
+	}
 }
 
-func (repo *mysqlUserRepository) addUser(user User) (err error) {
+func (repo mysqlUserRepository) addUser(user User) (err error) {
 	result, err := repo.dbConn.Exec("INSERT INTO USER (first_name, last_name, email) values (?, ?, ?)", user.FirstName, user.LastName, user.Email)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Failed to insert user; %v", err))
@@ -28,8 +30,8 @@ func (repo *mysqlUserRepository) addUser(user User) (err error) {
 
 	return nil
 }
-func (repo *mysqlUserRepository) getUsers() (users []*User) {
-	users = make([]*User, 0)
+func (repo mysqlUserRepository) getUsers() (users []User) {
+	users = make([]User, 0)
 
 	rows, err := repo.dbConn.Query("SELECT id, first_name, last_name, email FROM USER")
 
@@ -50,7 +52,7 @@ func (repo *mysqlUserRepository) getUsers() (users []*User) {
 		}
 
 		user := newUser(id, firstName, lastName, email)
-		users = append(users, user)
+		users = append(users, *user)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -59,7 +61,7 @@ func (repo *mysqlUserRepository) getUsers() (users []*User) {
 
 	return users
 }
-func (repo *mysqlUserRepository) getUser(userId string) (user User, err error) {
+func (repo mysqlUserRepository) getUser(userId string) (user User, err error) {
 	var (
 		id                         int64  = *new(int64)
 		firstName, lastName, email string = *new(string), *new(string), *new(string)

@@ -22,20 +22,28 @@ func NewServer() *martini.ClassicMartini {
 func initMappings(m *martini.ClassicMartini) {
 	profile := os.Getenv("PROFILE")
 
-	m.Map(newNoopEmailSender())
-
 	if profile == "mysql" {
 		db, err := newDbConn()
 		if err != nil {
-			userRepo := newMysqlUserRepository(db)
-			m.Map(userRepo)
+			newUserRepository = newMysqlUserRepositoryFactory(db)
 		}
 	} else {
 		lo.G.Info("Using in-memory repositories")
-
-		userRepo := newInMemoryUserRepository()
-		m.Map(userRepo)
+		newUserRepository = newInMemoryUserRepository
 	}
+
+	awsEndpoint := os.Getenv("AWS_ENDPOINT")
+	awsAccessKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
+	awsSecretAccessKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
+
+	if awsEndpoint != "" && awsAccessKeyID != "" && awsSecretAccessKey != "" {
+		newEmailSender = newAmazonSesEmailSender(awsEndpoint, awsAccessKeyID, awsSecretAccessKey)
+	} else {
+		newEmailSender = newNoopEmailSender
+	}
+
+	m.Map(newEmailSender())
+	m.Map(newUserRepository())
 }
 
 func initRoutes(m *martini.ClassicMartini) {
