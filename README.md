@@ -27,12 +27,18 @@ TODO - add the option to easily load test data when using in-memory repos.
 
 Currently, there are two implementations for sending email. The default option is a noopEmailSender, which will do nothing with email notifications.
 
-The other option is the Amazon SES Email Sender. To use the Amazon SES Email Sender, you must set three environment variables:
+To use the Amazon SES Email Sender, you must set three environment variables:
 
 1. AWS_ENDPOINT - the url for your  
 1. AWS_ACCESS_KEY_ID
 1. AWS_SECRET_ACCESS_KEY
 
+To use the Smtp Email sender, you must set these environment variables:
+
+1. SMTP_HOST
+1. SMTP_PORT
+1. SMTP_USERNAME
+1. SMTP_PASSWORD
 
 ## Interact with the API
 

@@ -3,13 +3,14 @@ package trec
 import (
 	"fmt"
 
+	"github.com/dave-malone/email"
 	"github.com/xchapter7x/lo"
 )
 
 func newUserRegistrationEvent(user User) {
 	lo.G.Debugf("user registration event for user %v", user)
 
-	emailMessage := newEmailMessage(
+	emailMessage := email.NewMessage(
 		"no-reply@therealestatecrm.com",
 		user.Email,
 		"TheRealEstateCRM.com Verification",
@@ -21,8 +22,8 @@ func newUserRegistrationEvent(user User) {
 	emailEventObserver(in)
 }
 
-func sendEmailEvent(message *emailMessage) <-chan *emailMessage {
-	emailChan := make(chan *emailMessage)
+func sendEmailEvent(message *email.Message) <-chan *email.Message {
+	emailChan := make(chan *email.Message)
 
 	go func() {
 		emailChan <- message
@@ -32,11 +33,11 @@ func sendEmailEvent(message *emailMessage) <-chan *emailMessage {
 	return emailChan
 }
 
-func emailEventObserver(in <-chan *emailMessage) {
+func emailEventObserver(in <-chan *email.Message) {
 	for message := range in {
 		fmt.Printf("Received email message: %v", *message)
-		sender := newEmailSender()
-		sender.send(*message)
+		sender := email.NewSenderFactory()
+		sender.Send(message)
 	}
 
 }

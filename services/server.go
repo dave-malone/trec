@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/codegangsta/martini-contrib/binding"
+	"github.com/dave-malone/email"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"github.com/xchapter7x/lo"
@@ -37,12 +38,12 @@ func initMappings(m *martini.ClassicMartini) {
 	awsSecretAccessKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
 
 	if awsEndpoint != "" && awsAccessKeyID != "" && awsSecretAccessKey != "" {
-		newEmailSender = newAmazonSesEmailSender(awsEndpoint, awsAccessKeyID, awsSecretAccessKey)
+		email.NewSenderFactory = email.NewAmazonSESSender(awsEndpoint, awsAccessKeyID, awsSecretAccessKey)
 	} else {
-		newEmailSender = newNoopEmailSender
+		email.NewSenderFactory = email.NewNoopSender
 	}
 
-	m.Map(newEmailSender())
+	m.Map(email.NewSenderFactory())
 	m.Map(newUserRepository())
 }
 

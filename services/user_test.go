@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/dave-malone/email"
 	"github.com/martini-contrib/render"
 )
 
@@ -71,7 +72,7 @@ func TestValidateWithEmptyRequiredFieldsFailsWithErrors(t *testing.T) {
 }
 
 func TestCreateUserHandler(t *testing.T) {
-	newEmailSender = newNoopEmailSender
+	email.NewSenderFactory = email.NewNoopSender
 
 	r := new(fakeRender)
 	user := newUser(-1, "First", "Last", "Email")
