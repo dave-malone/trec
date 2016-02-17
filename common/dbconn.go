@@ -1,4 +1,4 @@
-package trec
+package common
 
 import (
 	"database/sql"
@@ -14,7 +14,7 @@ type DbConn struct {
 	*sql.DB
 }
 
-func newDbConn() (*DbConn, error) {
+func NewDbConn() (*DbConn, error) {
 	dbUrl := flag.String("dburl", "trec:trec@localhost:3306/trec", "specify the MySQL database url to connect against")
 
 	flag.Parse()

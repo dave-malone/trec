@@ -1,4 +1,4 @@
-package trec
+package user
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ type fakeUserRepository struct {
 	execResult     User
 	execResults    []User
 	execError      error
-	SpyGetUserById string
+	SpyGetUserByID string
 }
 
 type fakeRender struct {
@@ -48,23 +48,23 @@ func (t *fakeUserRepository) GetUsersReturns(users []User, err error) {
 	t.execError = err
 }
 
-func (t *fakeUserRepository) addUser(user User) (err error) {
+func (t *fakeUserRepository) Add(user User) (err error) {
 	return t.execError
 }
 
-func (t *fakeUserRepository) getUsers() (users []User) {
+func (t *fakeUserRepository) GetUsers() (users []User) {
 	return t.execResults
 }
 
-func (t *fakeUserRepository) getUser(id string) (user User, err error) {
-	t.SpyGetUserById = id
+func (t *fakeUserRepository) GetUser(id string) (user User, err error) {
+	t.SpyGetUserByID = id
 	return t.execResult, t.execError
 }
 
 func TestValidateWithEmptyRequiredFieldsFailsWithErrors(t *testing.T) {
-	user := newUser(-1, "", "", "")
+	user := NewUser(-1, "", "", "")
 
-	validationErrors := user.validate()
+	validationErrors := user.Validate()
 
 	if len(validationErrors.Errors) != 3 {
 		t.Fatalf("Expected three errors, but there were %v errors: %v", len(validationErrors.Errors), validationErrors.Errors)
@@ -72,14 +72,14 @@ func TestValidateWithEmptyRequiredFieldsFailsWithErrors(t *testing.T) {
 }
 
 func TestCreateUserHandler(t *testing.T) {
-	email.NewSenderFactory = email.NewNoopSender
+	email.NewSender = email.NewNoopSender
 
 	r := new(fakeRender)
-	user := newUser(-1, "First", "Last", "Email")
+	user := NewUser(-1, "First", "Last", "Email")
 	repo := new(fakeUserRepository)
 	repo.AddUserReturns(nil)
 
-	createUserHandler(*user, repo, r)
+	CreateUserHandler(*user, repo, r)
 
 	if r.SpyStatus != http.StatusOK {
 		t.Fatalf("Excected status %v but status was: %v", http.StatusOK, r.SpyStatus)
@@ -100,7 +100,7 @@ func TestCreateUserHandler(t *testing.T) {
 
 func TestGetUserHandler(t *testing.T) {
 	r := new(fakeRender)
-	user := newUser(1, "First", "Last", "Email")
+	user := NewUser(1, "First", "Last", "Email")
 
 	var params map[string]string
 	params = make(map[string]string)
@@ -109,10 +109,10 @@ func TestGetUserHandler(t *testing.T) {
 	repo := new(fakeUserRepository)
 	repo.GetUserReturns(*user, nil)
 
-	getUserHandler(repo, params, r)
+	GetUserHandler(repo, params, r)
 
-	if (repo.SpyGetUserById) != params["id"] {
-		t.Fatalf("expected param value of %v; got %v", params["id"], repo.SpyGetUserById)
+	if (repo.SpyGetUserByID) != params["id"] {
+		t.Fatalf("expected param value of %v; got %v", params["id"], repo.SpyGetUserByID)
 	}
 
 	if r.SpyStatus != http.StatusOK {
@@ -130,11 +130,11 @@ func TestGetUserHandler(t *testing.T) {
 
 func TestGetUsersHandler(t *testing.T) {
 	r := new(fakeRender)
-	users := []User{*newUser(1, "First", "Last", "Email")}
+	users := []User{*NewUser(1, "First", "Last", "Email")}
 	repo := new(fakeUserRepository)
 	repo.GetUsersReturns(users, nil)
 
-	getUsersHandler(repo, r)
+	GetUsersHandler(repo, r)
 
 	if r.SpyStatus != http.StatusOK {
 		t.Fatalf("Excected status %v but status was: %v", http.StatusOK, r.SpyStatus)

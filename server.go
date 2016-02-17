@@ -5,6 +5,7 @@ import (
 
 	"github.com/codegangsta/martini-contrib/binding"
 	"github.com/dave-malone/email"
+	"github.com/dave-malone/trec/user"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"github.com/xchapter7x/lo"
@@ -26,11 +27,11 @@ func initMappings(m *martini.ClassicMartini) {
 	if profile == "mysql" {
 		db, err := newDbConn()
 		if err != nil {
-			newUserRepository = newMysqlUserRepositoryFactory(db)
+			user.NewRepository = user.NewMysqlRepositoryFactory(db)
 		}
 	} else {
 		lo.G.Info("Using in-memory repositories")
-		newUserRepository = newInMemoryUserRepository
+		user.NewRepository = user.NewInMemoryRepository
 	}
 
 	awsEndpoint := os.Getenv("AWS_ENDPOINT")
@@ -38,12 +39,12 @@ func initMappings(m *martini.ClassicMartini) {
 	awsSecretAccessKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
 
 	if awsEndpoint != "" && awsAccessKeyID != "" && awsSecretAccessKey != "" {
-		email.NewSenderFactory = email.NewAmazonSESSender(awsEndpoint, awsAccessKeyID, awsSecretAccessKey)
+		email.NewSender = email.NewAmazonSESSender(awsEndpoint, awsAccessKeyID, awsSecretAccessKey)
 	} else {
-		email.NewSenderFactory = email.NewNoopSender
+		email.NewSender = email.NewNoopSender
 	}
 
-	m.Map(email.NewSenderFactory())
+	m.Map(email.NewSender())
 	m.Map(newUserRepository())
 }
 
