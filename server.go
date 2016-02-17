@@ -1,10 +1,11 @@
-package trec
+package main
 
 import (
 	"os"
 
 	"github.com/codegangsta/martini-contrib/binding"
 	"github.com/dave-malone/email"
+	"github.com/dave-malone/trec/common"
 	"github.com/dave-malone/trec/user"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
@@ -25,7 +26,7 @@ func initMappings(m *martini.ClassicMartini) {
 	profile := os.Getenv("PROFILE")
 
 	if profile == "mysql" {
-		db, err := newDbConn()
+		db, err := common.NewDbConn()
 		if err != nil {
 			user.NewRepository = user.NewMysqlRepositoryFactory(db)
 		}
@@ -45,7 +46,7 @@ func initMappings(m *martini.ClassicMartini) {
 	}
 
 	m.Map(email.NewSender())
-	m.Map(newUserRepository())
+	m.Map(user.NewRepository())
 }
 
 func initRoutes(m *martini.ClassicMartini) {
@@ -57,9 +58,9 @@ func initRoutes(m *martini.ClassicMartini) {
 		r.Get("/info", func() string {
 			return "An API that allows you to work with Users"
 		})
-		r.Get("/", getUsersHandler)
-		r.Get("/:id", getUserHandler)
-		r.Post("/", binding.Json(User{}), createUserHandler)
+		r.Get("/", user.GetUsersHandler)
+		r.Get("/:id", user.GetUserHandler)
+		r.Post("/", binding.Json(user.User{}), user.CreateUserHandler)
 	})
 
 	m.Group("/company", func(r martini.Router) {
