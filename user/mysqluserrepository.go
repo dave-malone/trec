@@ -1,36 +1,37 @@
-package trec
+package user
 
 import (
 	"errors"
 	"fmt"
 
+	"github.com/dave-malone/trec/common"
 	"github.com/xchapter7x/lo"
 )
 
-type mysqlUserRepository struct {
-	dbConn *DbConn
+type mysqlRepository struct {
+	dbConn *common.DbConn
 }
 
-func newMysqlUserRepositoryFactory(dbConn *DbConn) userRepositoryFactory {
-	return func() userRepository {
-		return mysqlUserRepository{dbConn}
+func NewMysqlRepositoryFactory(dbConn *common.DbConn) RepositoryFactory {
+	return func() Repository {
+		return mysqlRepository{dbConn}
 	}
 }
 
-func (repo mysqlUserRepository) addUser(user User) (err error) {
+func (repo mysqlRepository) Add(user User) (err error) {
 	result, err := repo.dbConn.Exec("INSERT INTO USER (first_name, last_name, email) values (?, ?, ?)", user.FirstName, user.LastName, user.Email)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Failed to insert user; %v", err))
 	}
 
-	user.Id, err = result.LastInsertId()
+	user.ID, err = result.LastInsertId()
 	if err != nil {
 		return errors.New(fmt.Sprintf("Failed to get DB generated ID; %v", err))
 	}
 
 	return nil
 }
-func (repo mysqlUserRepository) getUsers() (users []User) {
+func (repo mysqlRepository) GetUsers() (users []User) {
 	users = make([]User, 0)
 
 	rows, err := repo.dbConn.Query("SELECT id, first_name, last_name, email FROM USER")
@@ -51,7 +52,7 @@ func (repo mysqlUserRepository) getUsers() (users []User) {
 			lo.G.Fatal(err)
 		}
 
-		user := newUser(id, firstName, lastName, email)
+		user := NewUser(id, firstName, lastName, email)
 		users = append(users, *user)
 	}
 
@@ -61,17 +62,17 @@ func (repo mysqlUserRepository) getUsers() (users []User) {
 
 	return users
 }
-func (repo mysqlUserRepository) getUser(userId string) (user User, err error) {
+func (repo mysqlRepository) GetUser(userID string) (user User, err error) {
 	var (
 		id                         int64  = *new(int64)
 		firstName, lastName, email string = *new(string), *new(string), *new(string)
 	)
 
-	if err := repo.dbConn.QueryRow("SELECT id, first_name, last_name, email FROM USER WHERE id = ?", userId).Scan(&id, &firstName, &lastName, &email); err == nil {
-		user := newUser(id, firstName, lastName, email)
+	if err := repo.dbConn.QueryRow("SELECT id, first_name, last_name, email FROM USER WHERE id = ?", userID).Scan(&id, &firstName, &lastName, &email); err == nil {
+		user := NewUser(id, firstName, lastName, email)
 
 		return *user, nil
 	} else {
-		return *new(User), err
+		return User{}, err
 	}
 }

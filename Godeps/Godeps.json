@@ -21,6 +21,10 @@
 			"Rev": "8ce6181c2609699e4c7cd30994b76a850a9cdadc"
 		},
 		{
+			"ImportPath": "github.com/dave-malone/email",
+			"Rev": "fa07ed945e01473c29cbfbdd90022491205ab7ee"
+		},
+		{
 			"ImportPath": "github.com/go-martini/martini",
 			"Comment": "v1.0-115-g8412a65",
 			"Rev": "8412a652ddae77553a9442708a527d0e616939a3"

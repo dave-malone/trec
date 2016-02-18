@@ -1,9 +1,12 @@
-package trec
+package main
 
 import (
 	"os"
 
 	"github.com/codegangsta/martini-contrib/binding"
+	"github.com/dave-malone/email"
+	"github.com/dave-malone/trec/common"
+	"github.com/dave-malone/trec/user"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"github.com/xchapter7x/lo"
@@ -23,13 +26,13 @@ func initMappings(m *martini.ClassicMartini) {
 	profile := os.Getenv("PROFILE")
 
 	if profile == "mysql" {
-		db, err := newDbConn()
+		db, err := common.NewDbConn()
 		if err != nil {
-			newUserRepository = newMysqlUserRepositoryFactory(db)
+			user.NewRepository = user.NewMysqlRepositoryFactory(db)
 		}
 	} else {
 		lo.G.Info("Using in-memory repositories")
-		newUserRepository = newInMemoryUserRepository
+		user.NewRepository = user.NewInMemoryRepository
 	}
 
 	awsEndpoint := os.Getenv("AWS_ENDPOINT")
@@ -37,13 +40,13 @@ func initMappings(m *martini.ClassicMartini) {
 	awsSecretAccessKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
 
 	if awsEndpoint != "" && awsAccessKeyID != "" && awsSecretAccessKey != "" {
-		newEmailSender = newAmazonSesEmailSender(awsEndpoint, awsAccessKeyID, awsSecretAccessKey)
+		email.NewSender = email.NewAmazonSESSender(awsEndpoint, awsAccessKeyID, awsSecretAccessKey)
 	} else {
-		newEmailSender = newNoopEmailSender
+		email.NewSender = email.NewNoopSender
 	}
 
-	m.Map(newEmailSender())
-	m.Map(newUserRepository())
+	m.Map(email.NewSender())
+	m.Map(user.NewRepository())
 }
 
 func initRoutes(m *martini.ClassicMartini) {
@@ -55,9 +58,9 @@ func initRoutes(m *martini.ClassicMartini) {
 		r.Get("/info", func() string {
 			return "An API that allows you to work with Users"
 		})
-		r.Get("/", getUsersHandler)
-		r.Get("/:id", getUserHandler)
-		r.Post("/", binding.Json(User{}), createUserHandler)
+		r.Get("/", user.GetUsersHandler)
+		r.Get("/:id", user.GetUserHandler)
+		r.Post("/", binding.Json(user.User{}), user.CreateUserHandler)
 	})
 
 	m.Group("/company", func(r martini.Router) {
