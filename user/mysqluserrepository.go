@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/dave-malone/trec/common"
+	"github.com/SpearWind/trec/common"
 	"github.com/xchapter7x/lo"
 )
 

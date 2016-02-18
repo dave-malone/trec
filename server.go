@@ -5,15 +5,14 @@ import (
 
 	"github.com/codegangsta/martini-contrib/binding"
 	"github.com/dave-malone/email"
-	"github.com/dave-malone/trec/common"
-	"github.com/dave-malone/trec/user"
+	"github.com/SpearWind/trec/common"
+	"github.com/SpearWind/trec/user"
 	"github.com/go-martini/martini"
 	"github.com/martini-contrib/render"
 	"github.com/xchapter7x/lo"
 )
 
-// NewServer configures and returns a Server.
-func NewServer() *martini.ClassicMartini {
+func newServer() *martini.ClassicMartini {
 	m := martini.Classic()
 	initRoutes(m)
 	initMappings(m)
