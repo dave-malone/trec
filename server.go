@@ -13,7 +13,15 @@ import (
 
 // NewServer configures and returns a Server.
 func NewServer() *negroni.Negroni {
-	initFactories()
+	awsEndpoint := os.Getenv("AWS_ENDPOINT")
+	awsAccessKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
+	awsSecretAccessKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
+
+	if awsEndpoint != "" && awsAccessKeyID != "" && awsSecretAccessKey != "" {
+		email.NewSender = email.NewAmazonSESSender(awsEndpoint, awsAccessKeyID, awsSecretAccessKey)
+	} else {
+		email.NewSender = email.NewNoopSender
+	}
 
 	formatter := render.New(render.Options{
 		IndentJSON: true,
@@ -24,21 +32,7 @@ func NewServer() *negroni.Negroni {
 	initRoutes(router, formatter)
 
 	n.UseHandler(router)
-	// m.Use(render.Renderer())
-
 	return n
-}
-
-func initFactories() {
-	awsEndpoint := os.Getenv("AWS_ENDPOINT")
-	awsAccessKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
-	awsSecretAccessKey := os.Getenv("AWS_SECRET_ACCESS_KEY")
-
-	if awsEndpoint != "" && awsAccessKeyID != "" && awsSecretAccessKey != "" {
-		email.NewSender = email.NewAmazonSESSender(awsEndpoint, awsAccessKeyID, awsSecretAccessKey)
-	} else {
-		email.NewSender = email.NewNoopSender
-	}
 }
 
 func initRoutes(router *mux.Router, formatter *render.Render) {
@@ -51,16 +45,3 @@ func homeHandler(formatter *render.Render) http.HandlerFunc {
 		formatter.JSON(w, http.StatusOK, struct{ Message string }{"trec api home; nothing to see here"})
 	}
 }
-
-// m.Get("/", func() string {
-// 	return "trec api home; nothing to see here"
-// })
-//
-// m.Post("/login", auth.LoginHandler)
-// m.Get("/validate", auth.ValidationHandler)
-//
-// m.Group("/company", func(r martini.Router) {
-// 	r.Get("/info", func() string {
-// 		return "An API that allows you to work with Companies"
-// 	})
-// })
