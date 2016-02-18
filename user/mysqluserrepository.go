@@ -12,13 +12,11 @@ type mysqlRepository struct {
 	dbConn *common.DbConn
 }
 
-func NewMysqlRepositoryFactory(dbConn *common.DbConn) RepositoryFactory {
-	return func() Repository {
-		return mysqlRepository{dbConn}
-	}
+func newMysqlRepository(dbConn *common.DbConn) *mysqlRepository {
+	return &mysqlRepository{dbConn}
 }
 
-func (repo mysqlRepository) Add(user User) (err error) {
+func (repo *mysqlRepository) add(user User) (err error) {
 	result, err := repo.dbConn.Exec("INSERT INTO USER (first_name, last_name, email) values (?, ?, ?)", user.FirstName, user.LastName, user.Email)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Failed to insert user; %v", err))
@@ -31,7 +29,7 @@ func (repo mysqlRepository) Add(user User) (err error) {
 
 	return nil
 }
-func (repo mysqlRepository) GetUsers() (users []User) {
+func (repo *mysqlRepository) listUsers() (users []User) {
 	users = make([]User, 0)
 
 	rows, err := repo.dbConn.Query("SELECT id, first_name, last_name, email FROM USER")
@@ -52,7 +50,7 @@ func (repo mysqlRepository) GetUsers() (users []User) {
 			lo.G.Fatal(err)
 		}
 
-		user := NewUser(id, firstName, lastName, email)
+		user := newUser(id, firstName, lastName, email)
 		users = append(users, *user)
 	}
 
@@ -62,14 +60,14 @@ func (repo mysqlRepository) GetUsers() (users []User) {
 
 	return users
 }
-func (repo mysqlRepository) GetUser(userID string) (user User, err error) {
+func (repo *mysqlRepository) getUser(userID string) (user User, err error) {
 	var (
 		id                         int64  = *new(int64)
 		firstName, lastName, email string = *new(string), *new(string), *new(string)
 	)
 
 	if err := repo.dbConn.QueryRow("SELECT id, first_name, last_name, email FROM USER WHERE id = ?", userID).Scan(&id, &firstName, &lastName, &email); err == nil {
-		user := NewUser(id, firstName, lastName, email)
+		user := newUser(id, firstName, lastName, email)
 
 		return *user, nil
 	} else {

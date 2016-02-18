@@ -1,11 +1,16 @@
 package user
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
 
-	"github.com/go-martini/martini"
-	"github.com/martini-contrib/render"
+	"github.com/dave-malone/trec/common"
+	"github.com/gorilla/mux"
+	"github.com/unrolled/render"
 	"github.com/xchapter7x/lo"
 )
 
@@ -14,68 +19,84 @@ var (
 	ErrUserDoesntExist = errors.New("This user doesnt exist")
 )
 
-func CreateUserHandler(user User, repo Repository, r render.Render) {
-	errs := user.Validate()
+func repo() repository {
+	profile := os.Getenv("PROFILE")
 
-	if errs.IsEmpty() != true {
-		r.JSON(http.StatusBadRequest, map[string]interface{}{
-			"errors": errs.Errors,
-		})
+	var repo repository
 
-		return
-	}
-
-	err := repo.Add(user)
-	responseCode := http.StatusOK
-	errMsg := ""
-
-	if err != nil {
-		lo.G.Errorf("An error occurred when saving user: %v", err)
-		errMsg = err.Error()
-		responseCode = http.StatusInternalServerError
+	if profile == "mysql" {
+		db, err := common.NewDbConn()
+		if err != nil {
+			repo = newMysqlRepository(db)
+		}
 	} else {
-		newUserRegistrationEvent(user)
+		lo.G.Info("Using in-memory repositories")
+		repo = newInMemoryRepository()
 	}
 
-	r.JSON(responseCode, map[string]interface{}{
-		"user":  user,
-		"error": errMsg,
-	})
-
-	return
+	return repo
 }
 
-func GetUsersHandler(repo Repository, r render.Render) {
-	users := repo.GetUsers()
-
-	responseCode := http.StatusOK
-
-	r.JSON(responseCode, map[string]interface{}{
-		"users": users,
-	})
-
-	return
+func InitRoutes(router *mux.Router, formatter *render.Render) {
+	repo := repo()
+	router.HandleFunc("/user", createUserHandler(formatter, repo)).Methods("POST")
+	router.HandleFunc("/user", getUserListHandler(formatter, repo)).Methods("GET")
+	router.HandleFunc("/user/{id}", getUserHandler(formatter, repo)).Methods("GET")
 }
 
-func GetUserHandler(repo Repository, params martini.Params, r render.Render) {
-	userId := params["id"]
-	lo.G.Debugf("Getting user with id %v\n", userId)
+func createUserHandler(formatter *render.Render, repo repository) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		payload, _ := ioutil.ReadAll(req.Body)
+		var user User
 
-	user, err := repo.GetUser(userId)
+		err := json.Unmarshal(payload, &user)
+		if err != nil {
+			formatter.Text(w, http.StatusBadRequest, "Failed to parse create user request")
+			return
+		}
 
-	responseCode := http.StatusOK
-	errMsg := ""
+		if result := user.validate(); result.HasErrors() {
+			formatter.JSON(w, http.StatusBadRequest, map[string]interface{}{
+				"errors": result.Errors,
+			})
+			return
+		}
 
-	if err != nil {
-		lo.G.Errorf("An error occurred when getting user: %v", err)
-		errMsg = err.Error()
-		responseCode = http.StatusInternalServerError
+		if err := repo.add(user); err != nil {
+			formatter.JSON(w, http.StatusInternalServerError, map[string]interface{}{
+				"user":  user,
+				"error": err.Error(),
+			})
+		} else {
+			w.Header().Add("Location", fmt.Sprintf("/user/%d", user.ID))
+			formatter.JSON(w, http.StatusCreated, user)
+			newUserRegistrationEvent(user)
+		}
 	}
+}
 
-	r.JSON(responseCode, map[string]interface{}{
-		"user":  user,
-		"error": errMsg,
-	})
+func getUserListHandler(formatter *render.Render, repo repository) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		users := repo.listUsers()
 
-	return
+		formatter.JSON(w, http.StatusOK, map[string]interface{}{
+			"users": users,
+			"total": len(users),
+		})
+	}
+}
+
+func getUserHandler(formatter *render.Render, repo repository) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		vars := mux.Vars(req)
+		userID := vars["id"]
+
+		if user, err := repo.getUser(userID); err != nil {
+			formatter.JSON(w, http.StatusNotFound, map[string]interface{}{
+				"error": err.Error(),
+			})
+		} else {
+			formatter.JSON(w, http.StatusOK, user)
+		}
+	}
 }
