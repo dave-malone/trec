@@ -14,6 +14,6 @@ func main() {
 
 	lo.G.Debug("Running server on port %v\n", port)
 
-	m := NewServer()
+	m := newServer()
 	m.RunOnAddr(":" + port)
 }
