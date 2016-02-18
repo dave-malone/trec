@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/SpearWind/trec/user"
 	"github.com/codegangsta/negroni"
 	"github.com/dave-malone/email"
-	"github.com/dave-malone/trec/user"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
 )

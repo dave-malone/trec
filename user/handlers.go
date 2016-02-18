@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dave-malone/trec/common"
+	"github.com/SpearWind/trec/common"
 	"github.com/gorilla/mux"
 	"github.com/unrolled/render"
 	"github.com/xchapter7x/lo"
