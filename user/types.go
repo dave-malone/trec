@@ -3,8 +3,8 @@ package user
 import (
 	"fmt"
 
-	"github.com/dave-malone/trec/common"
-	"github.com/dave-malone/trec/company"
+	"github.com/SpearWind/trec/common"
+	"github.com/SpearWind/trec/company"
 )
 
 type repository interface {
